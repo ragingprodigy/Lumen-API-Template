@@ -1,0 +1,15 @@
+.DS_Store
+/vendor
+/.idea
+Homestead.json
+Homestead.yaml
+.env
+storage/framework/*
+storage/exports/*
+storage/app/*
+*.log
+storage/logs/*
+storage/uploads/*
+storage/**/*.xl*
+push.sh
+storage/**/*.csv

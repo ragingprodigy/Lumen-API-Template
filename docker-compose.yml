@@ -1,0 +1,72 @@
+version: '2.2'
+
+networks:
+  database:
+    driver: bridge
+  redis:
+    driver: bridge
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Api.Dockerfile
+      args:
+        IS_DEV_MODE: 1
+    command: /usr/local/bin/app/setup_and_run.sh # only for DEV mode
+    volumes_from:
+      - sources # only for DEV mode.
+    network_mode: "service:web"
+    env_file:
+      - docker/Api/env_files/main.env
+      - ./.env
+    depends_on:
+      - database
+
+  web:
+    build:
+      context: .
+      dockerfile: WebServer.Dockerfile
+    ports:
+      - "80:80"
+    volumes_from:
+      - sources:rw
+    networks:
+      - database
+      - redis
+    depends_on:
+      - redis
+      - database
+
+  redis:
+    image: redis:4-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      redis:
+        aliases:
+          - redis
+
+  database:
+    image: mysql:5.7
+    volumes:
+      - database:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: dev_db
+    ports:
+      - "3306:3306"
+    networks:
+      database:
+        aliases:
+          - database
+
+  sources:
+    image: alpine
+    volumes:
+      - ./:/var/www/application:rw
+
+volumes:
+  database:
